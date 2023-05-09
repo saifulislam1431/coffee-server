@@ -28,7 +28,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
     try {
-      
+
 
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
@@ -36,29 +36,49 @@ async function run() {
         const coffeeCollection = client.db('coffeeServer').collection('coffees');
 
         // Read Data
-        app.get('/coffees', async(req , res)=>{
+        app.get('/coffees', async (req, res) => {
             const cursor = coffeeCollection.find();
             const result = await cursor.toArray();
             res.send(result);
         })
-        app.get("/coffees/:id",async(req,res)=>{
+        app.get("/coffees/:id", async (req, res) => {
             const id = req.params.id;
-            const query = {_id : new ObjectId(id)};
+            const query = { _id: new ObjectId(id) };
             const result = await coffeeCollection.findOne(query);
             res.send(result);
         })
 
         // Add data 
-        app.post("/coffees", async(req,res)=>{
+        app.post("/coffees", async (req, res) => {
             const newCoffee = req.body;
             const result = await coffeeCollection.insertOne(newCoffee);
             res.send(result);
         })
         // Data delete
-        app.delete("/coffees/:id",async(req,res)=>{
+        app.delete("/coffees/:id", async (req, res) => {
             const id = req.params.id;
-            const query = {_id: new ObjectId(id)};
+            const query = { _id: new ObjectId(id) };
             const result = await coffeeCollection.deleteOne(query);
+            res.send(result);
+        })
+        // Data Update
+        app.put("/coffees/:id", async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const option = { upsert: true };
+            const updateCoffee = req.body;
+            const coffeeField = {
+                $set: {
+                    name: updateCoffee.name,
+                    chef: updateCoffee.chef,
+                    supplier: updateCoffee.supplier,
+                    taste: updateCoffee.taste,
+                    category: updateCoffee.category,
+                    details: updateCoffee.details,
+                    photo: updateCoffee.photo
+                }
+            }
+            const result = await coffeeCollection.updateOne(filter, coffeeField, option);
             res.send(result);
         })
 
